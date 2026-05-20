@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><title>Universal Migration Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050a12;--card:#0c1220;--card2:#111827;--border:rgba(99,130,191,0.12);--border2:rgba(99,130,191,0.2);--text:#e8ecf4;--muted:#6b7a94;--accent:#3b82f6;--accent2:#60a5fa;--green:#22c55e;--green-dim:rgba(34,197,94,0.1);--purple:#a78bfa;--purple-dim:rgba(167,139,250,0.1);--orange:#f59e0b;--orange-dim:rgba(245,158,11,0.1);--red:#ef4444;--cyan:#06b6d4;--cyan-dim:rgba(6,182,212,0.1);--yellow:#eab308;--yellow-dim:rgba(234,179,8,0.1);--glow:0 0 40px rgba(59,130,246,0.08)}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:400px;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(59,130,246,0.08),transparent);pointer-events:none;z-index:0}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 28px;position:relative;z-index:1}
+
+/* Header */
+.header{text-align:center;padding:32px 0 28px}
+.header h1{font-size:28px;font-weight:800;letter-spacing:-0.5px;color:#fff}
+.header h1 span{background:linear-gradient(135deg,#3b82f6,#8b5cf6,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-top:6px}
+
+/* Config Bar */
+.config-bar{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;margin-bottom:24px;display:flex;gap:14px;flex-wrap:wrap;align-items:end;backdrop-filter:blur(10px)}
+.config-bar .field{flex:1;min-width:180px}
+.config-bar label{display:block;font-size:10px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
+.config-bar input{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:10px 14px;border-radius:10px;font-size:13px;font-family:inherit;transition:border-color 0.2s}
+.config-bar input:focus{outline:none;border-color:var(--accent)}
+.btn-sync{background:linear-gradient(135deg,#3b82f6,#7c3aed);color:#fff;border:none;padding:11px 28px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:transform 0.15s,box-shadow 0.2s;white-space:nowrap}
+.btn-sync:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,0.3)}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
+.metric{background:var(--card);border:1px solid var(--border);padding:20px 16px;border-radius:14px;text-align:center;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.15s}
+.metric:hover{border-color:var(--border2);transform:translateY(-2px)}
+.metric::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:40px;height:3px;border-radius:0 0 4px 4px}
+.metric .label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
+.metric .val{font-size:32px;font-weight:800;line-height:1}
+.metric .recent-sub{font-size:11px;margin-top:6px;font-weight:600}
+.m-source .val{color:var(--muted)}.m-source::before{background:var(--muted)}
+.m-repos .val{color:var(--green)}.m-repos::before{background:var(--green)}.m-repos .recent-sub{color:var(--orange)}
+.m-pipes .val{color:var(--green)}.m-pipes::before{background:var(--orange)}.m-pipes .recent-sub{color:var(--orange)}
+.m-boards .val{color:var(--cyan)}.m-boards::before{background:var(--cyan)}
+.m-vg .val{color:var(--yellow)}.m-vg::before{background:var(--yellow)}
+.m-env .val{color:var(--purple)}.m-env::before{background:var(--purple)}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:5px}
+.tab{flex:1;padding:10px 16px;cursor:pointer;border-radius:8px;color:var(--muted);font-weight:600;font-size:13px;text-align:center;transition:all 0.2s;border:1px solid transparent}
+.tab:hover{color:var(--text);background:rgba(255,255,255,0.03)}
+.tab.active{background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(124,58,237,0.1));color:#fff;border-color:rgba(59,130,246,0.3)}
+
+/* Tables */
+.list-container{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:rgba(255,255,255,0.02);padding:14px 20px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;text-align:left;border-bottom:1px solid var(--border2)}
+td{padding:14px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:400;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.015)}
+.badge-new{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(245,158,11,0.3);padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-left:8px;letter-spacing:0.3px}
+.hidden{display:none}
+.date-cell{font-family:'Inter',monospace;color:var(--muted);font-size:12px;font-weight:500}
+a.gh-link{color:var(--accent2);text-decoration:none;font-weight:600;transition:color 0.15s}
+a.gh-link:hover{color:#93bbfd}
+
+/* Status badges */
+.status{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:0.2px}
+.status-ok{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.2)}
+.status-warn{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(245,158,11,0.2)}
+.status-fail{background:rgba(239,68,68,0.08);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.status-muted{background:rgba(107,122,148,0.08);color:var(--muted);border:1px solid rgba(107,122,148,0.15)}
+.status-purple{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+.status-yellow{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(234,179,8,0.2)}
+
+/* Log */
+.log-area{margin-top:20px;background:var(--card);padding:16px 20px;border-radius:12px;font-family:'Inter',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border);max-height:120px;overflow-y:auto;line-height:1.8}
+.log-error{color:var(--red)}
+
+/* Empty state */
+.empty-row td{text-align:center;color:var(--muted);font-style:italic;padding:40px 20px}
+
+@media(max-width:900px){.metrics{grid-template-columns:repeat(3,1fr)}.tabs{flex-wrap:wrap}}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}.config-bar{flex-direction:column}}
+</style>
+</head>
+<body onload="loadConfig()">
+<div class="wrap">
+<div class="header">
+    <h1>🚀 <span>Universal Migration Control Center</span></h1>
+    <div class="subtitle" id="lastUpdated">Last Updated: Never</div>
+</div>
+
+<div class="config-bar">
+    <div class="field"><label>ADO Organization</label><input id="adoOrg" placeholder="e.g. my-ado-org"></div>
+    <div class="field"><label>ADO PAT</label><input id="adoPat" type="password" placeholder="Personal Access Token"></div>
+    <div class="field"><label>GitHub Organization</label><input id="ghOrg" placeholder="e.g. my-github-org"></div>
+    <div class="field"><label>GitHub PAT</label><input id="ghPat" type="password" placeholder="Personal Access Token"></div>
+    <button class="btn-sync" onclick="syncAll()">▶ Full Sync</button>
+</div>
+
+<div class="metrics">
+    <div class="metric m-source"><div class="label">ADO Projects</div><div class="val" id="m-src-proj">0</div></div>
+    <div class="metric m-repos"><div class="label">Migrated Repos</div><div class="val" id="m-repos">0</div><div class="recent-sub" id="r-repos">+0 recent</div></div>
+    <div class="metric m-pipes"><div class="label">Pipelines</div><div class="val" id="m-pipes">0</div><div class="recent-sub" id="r-pipes">+0 recent</div></div>
+    <div class="metric m-boards"><div class="label">Board Projects</div><div class="val" id="m-boards">0</div></div>
+    <div class="metric m-vg"><div class="label">Variable Groups</div><div class="val" id="m-vargrps">0</div></div>
+    <div class="metric m-env"><div class="label">Environments</div><div class="val" id="m-envs">0</div></div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="showTab('repos')">Repositories</div>
+    <div class="tab" onclick="showTab('pipelines')">Pipelines</div>
+    <div class="tab" onclick="showTab('boards')">Boards</div>
+    <div class="tab" onclick="showTab('vargroups')">Variable Groups</div>
+    <div class="tab" onclick="showTab('environments')">Environments</div>
+</div>
+
+<div id="section-repos" class="list-container">
+    <table><thead><tr><th style="width:30%">Repo Name</th><th style="width:25%">Project</th><th style="width:25%">Migration Date</th><th style="width:20%">Link</th></tr></thead><tbody id="table-repos"><tr class="empty-row"><td colspan="4">Run Full Sync to populate data</td></tr></tbody></table>
+</div>
+<div id="section-pipelines" class="list-container hidden">
+    <table><thead><tr><th style="width:35%">Pipeline / Workflow</th><th style="width:35%">Repo</th><th style="width:30%">Status</th></tr></thead><tbody id="table-pipelines"><tr class="empty-row"><td colspan="3">Run Full Sync to populate data</td></tr></tbody></table>
+</div>
+<div id="section-boards" class="list-container hidden">
+    <table><thead><tr><th style="width:22%">ADO Project</th><th style="width:18%">ADO Work Items</th><th style="width:18%">GitHub Issues</th><th style="width:20%">Repos Migrated</th><th style="width:22%">Status</th></tr></thead><tbody id="table-boards"><tr class="empty-row"><td colspan="5">Run Full Sync to populate data</td></tr></tbody></table>
+</div>
+<div id="section-vargroups" class="list-container hidden">
+    <table><thead><tr><th style="width:24%">Variable Group</th><th style="width:20%">ADO Project</th><th style="width:14%">ADO Vars</th><th style="width:14%">GitHub Vars</th><th style="width:28%">Migration Status</th></tr></thead><tbody id="table-vargroups"><tr class="empty-row"><td colspan="5">Run Full Sync to populate data</td></tr></tbody></table>
+</div>
+<div id="section-environments" class="list-container hidden">
+    <table><thead><tr><th style="width:20%">Environment</th><th style="width:18%">ADO Project</th><th style="width:22%">Description</th><th style="width:18%">GitHub Repo</th><th style="width:22%">Migration Status</th></tr></thead><tbody id="table-environments"><tr class="empty-row"><td colspan="5">Run Full Sync to populate data</td></tr></tbody></table>
+</div>
+
+<div class="log-area" id="logArea">Ready — Enter credentials and click Full Sync.</div>
+</div>
+
+<script>
+let data={repos:[],pipes:[],boards:[],vargroups:[],environments:[],r_repos:0,r_pipes:0,src_proj:0};
+function loadConfig(){const a=localStorage.getItem('univ_adoOrg'),g=localStorage.getItem('univ_ghOrg');if(a)document.getElementById('adoOrg').value=a;if(g)document.getElementById('ghOrg').value=g}
+function log(m,e=false){const a=document.getElementById('logArea');a.innerHTML=`<div class="${e?'log-error':''}">[${new Date().toLocaleTimeString()}] ${m}</div>`+a.innerHTML}
+function showTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));document.querySelector(`.tab[onclick="showTab('${t}')"]`).classList.add('active');document.querySelectorAll('.list-container').forEach(e=>e.classList.add('hidden'));document.getElementById(`section-${t}`).classList.remove('hidden')}
+function formatDate(d){const dt=new Date(d);return dt.toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+dt.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}
+async function fetchAllGitHub(url,headers){let r=[],n=url;while(n){const resp=await fetch(n,{headers});if(!resp.ok)throw new Error(`GitHub API ${resp.status}`);const d=await resp.json();r=r.concat(Array.isArray(d)?d:(d.environments||d.variables||[]));const l=resp.headers.get('link');n=l&&l.includes('rel="next"')?(l.match(/<([^>]+)>;\s*rel="next"/)||[])[1]:null}return r}
+
+async function syncAll(){
+    const adoOrg=document.getElementById('adoOrg').value.trim(),adoPat=document.getElementById('adoPat').value.trim(),ghOrg=document.getElementById('ghOrg').value.trim(),ghPat=document.getElementById('ghPat').value.trim();
+    if(!adoOrg||!adoPat||!ghOrg||!ghPat){alert('All fields are required');return}
+    localStorage.setItem('univ_adoOrg',adoOrg);localStorage.setItem('univ_ghOrg',ghOrg);
+    document.getElementById('lastUpdated').textContent='Last Updated: Fetching...';log('Starting synchronization...');
+    const adoAuth=btoa(':'+adoPat),adoH={'Authorization':`Basic ${adoAuth}`},ghH={'Authorization':`token ${ghPat}`,'Accept':'application/vnd.github.v3+json'};
+    const oneHourAgo=new Date(Date.now()-3600000);
+    data={repos:[],pipes:[],boards:[],vargroups:[],environments:[],r_repos:0,r_pipes:0,src_proj:0};
+    try{
+        log(`Fetching repos for GitHub org "${ghOrg}"`);
+        const ghRepos=await fetchAllGitHub(`https://api.github.com/orgs/${encodeURIComponent(ghOrg)}/repos?per_page=100&sort=created&direction=desc`,ghH);
+        log(`Found ${ghRepos.length} repositories in GitHub.`);
+        const ghRepoMap={};ghRepos.forEach(r=>{ghRepoMap[r.name.toLowerCase()]={url:r.html_url,created:r.created_at,name:r.name}});
+
+        log(`Fetching projects for ADO org "${adoOrg}"`);
+        const projResp=await fetch(`https://dev.azure.com/${encodeURIComponent(adoOrg)}/_apis/projects?api-version=7.1`,{headers:adoH});
+        if(!projResp.ok)throw new Error(`ADO Projects API error ${projResp.status}`);
+        const projects=(await projResp.json()).value;data.src_proj=projects.length;
+        log(`Found ${projects.length} ADO projects.`);
+
+        for(const proj of projects){
+            const repoResp=await fetch(`https://dev.azure.com/${encodeURIComponent(adoOrg)}/${encodeURIComponent(proj.name)}/_apis/git/repositories?api-version=7.1`,{headers:adoH});
+            if(!repoResp.ok){log(`Failed repos for ${proj.name}`,true);continue}
+            const adoRepos=(await repoResp.json()).value;
+            const projMig=adoRepos.filter(r=>ghRepoMap[r.name.toLowerCase()]);
+
+            for(const ar of adoRepos){const m=ghRepoMap[ar.name.toLowerCase()];if(m){const c=new Date(m.created),rc=c>oneHourAgo;if(rc)data.r_repos++;data.repos.push({name:ar.name,project:proj.name,url:m.url,date:m.created,recent:rc});try{const wr=await fetch(`https://api.github.com/repos/${encodeURIComponent(ghOrg)}/${encodeURIComponent(ar.name)}/commits?path=.github/workflows&per_page=1`,{headers:ghH});if(wr.ok){const cm=await wr.json();if(cm.length>0){const pr=new Date(cm[0].commit.committer.date)>oneHourAgo;if(pr)data.r_pipes++;data.pipes.push({name:'GitHub Actions',repo:ar.name,recent:pr})}}}catch(e){}}}
+
+            // Boards
+            let wiC=0;try{const wr=await fetch(`https://dev.azure.com/${encodeURIComponent(adoOrg)}/${encodeURIComponent(proj.name)}/_apis/wit/wiql?api-version=7.1`,{method:'POST',headers:{...adoH,'Content-Type':'application/json'},body:JSON.stringify({query:"SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '"+proj.name.replace(/'/g,"''")+"'"})});if(wr.ok){const wd=await wr.json();wiC=wd.workItems?wd.workItems.length:0}}catch(e){}
+            let ghI=0;for(const mr of projMig){try{const ir=await fetch(`https://api.github.com/repos/${encodeURIComponent(ghOrg)}/${encodeURIComponent(mr.name)}/issues?state=all&per_page=1`,{headers:ghH});if(ir.ok){const is=await ir.json();if(is.length>0)ghI+=is.length;const lh=ir.headers.get('link');if(lh&&lh.includes('rel="last"')){const lm=lh.match(/page=(\d+)>;\s*rel="last"/);if(lm)ghI=parseInt(lm[1])}}}catch(e){}}
+            data.boards.push({adoProject:proj.name,workItems:wiC,ghIssues:ghI,migratedRepos:projMig.length,totalRepos:adoRepos.length,status:ghI>0?'migrated':(wiC>0?'pending':'empty')});
+
+            // Variable Groups
+            try{log(`Fetching variable groups for ${proj.name}...`);const vr=await fetch(`https://dev.azure.com/${encodeURIComponent(adoOrg)}/${encodeURIComponent(proj.name)}/_apis/distributedtask/variablegroups?api-version=7.1`,{headers:adoH});if(vr.ok){const vd=await vr.json(),vl=vd.value||[];log(`  ${vl.length} variable group(s) in ${proj.name}`);const gvm={};for(const mr of projMig){try{const gr=await fetch(`https://api.github.com/repos/${encodeURIComponent(ghOrg)}/${encodeURIComponent(mr.name)}/actions/variables?per_page=100`,{headers:ghH});if(gr.ok){const gd=await gr.json();(gd.variables||[]).forEach(v=>{gvm[v.name.toUpperCase()]=mr.name})}}catch(e){}}for(const vg of vl){const an=vg.variables?Object.keys(vg.variables):[];let mc=0;const mr2=new Set();for(const vn of an){if(gvm[vn.toUpperCase()]){mc++;mr2.add(gvm[vn.toUpperCase()])}}let ms='not_found';if(an.length>0&&mc===an.length)ms='fully_migrated';else if(mc>0)ms='partial';else if(projMig.length===0)ms='no_repos';data.vargroups.push({name:vg.name,project:proj.name,adoVarCount:an.length,ghVarCount:mc,ghRepos:[...mr2].join(', '),status:ms})}}}catch(e){log(`VG fetch failed for ${proj.name}: ${e.message}`,true)}
+
+            // Environments
+            try{log(`Fetching environments for ${proj.name}...`);const er=await fetch(`https://dev.azure.com/${encodeURIComponent(adoOrg)}/${encodeURIComponent(proj.name)}/_apis/distributedtask/environments?api-version=7.1`,{headers:adoH});if(er.ok){const ed=await er.json(),el=ed.value||[];log(`  ${el.length} environment(s) in ${proj.name}`);const gem={};for(const mr of projMig){try{const ge=await fetch(`https://api.github.com/repos/${encodeURIComponent(ghOrg)}/${encodeURIComponent(mr.name)}/environments`,{headers:ghH});if(ge.ok){const gd=await ge.json();(gd.environments||[]).forEach(e=>{gem[e.name.toLowerCase()]=mr.name})}}catch(e){}}for(const env of el){const gm=gem[env.name.toLowerCase()];data.environments.push({name:env.name,project:proj.name,description:env.description||'—',ghRepo:gm||'—',status:gm?'migrated':(projMig.length===0?'no_repos':'not_found')})}}}catch(e){log(`Env fetch failed for ${proj.name}: ${e.message}`,true)}
+        }
+        document.getElementById('lastUpdated').textContent='Last Updated: '+formatDate(new Date());render();log('✅ Sync completed successfully.');
+    }catch(err){document.getElementById('lastUpdated').textContent='Last Updated: Error';log('Error: '+err.message,true)}
+}
+
+function render(){
+    document.getElementById('m-src-proj').textContent=data.src_proj;
+    document.getElementById('m-repos').textContent=data.repos.length;
+    document.getElementById('r-repos').textContent=`+${data.r_repos} recent`;
+    document.getElementById('m-pipes').textContent=data.pipes.length;
+    document.getElementById('r-pipes').textContent=`+${data.r_pipes} recent`;
+    document.getElementById('m-boards').textContent=data.boards.filter(b=>b.status==='migrated').length;
+    document.getElementById('m-vargrps').textContent=data.vargroups.filter(v=>v.status==='fully_migrated'||v.status==='partial').length;
+    document.getElementById('m-envs').textContent=data.environments.filter(e=>e.status==='migrated').length;
+
+    const sr=[...data.repos].sort((a,b)=>new Date(b.date)-new Date(a.date));
+    document.getElementById('table-repos').innerHTML=sr.length?sr.map(r=>`<tr><td><strong>${r.name}</strong>${r.recent?'<span class="badge-new">NEW</span>':''}</td><td>${r.project}</td><td class="date-cell">${formatDate(r.date)}</td><td><a class="gh-link" href="${r.url}" target="_blank">GitHub ↗</a></td></tr>`).join(''):'<tr class="empty-row"><td colspan="4">No migrated repositories found</td></tr>';
+
+    document.getElementById('table-pipelines').innerHTML=data.pipes.length?data.pipes.map(p=>`<tr><td>${p.name}${p.recent?'<span class="badge-new">NEW</span>':''}</td><td>${p.repo}</td><td><span class="status status-ok">✓ Migrated</span></td></tr>`).join(''):'<tr class="empty-row"><td colspan="3">No pipelines found</td></tr>';
+
+    document.getElementById('table-boards').innerHTML=data.boards.length?data.boards.map(b=>{let s;if(b.status==='migrated')s='<span class="status status-ok">✓ Issues Found</span>';else if(b.status==='pending')s='<span class="status status-warn">⏳ Pending</span>';else s='<span class="status status-muted">— Empty</span>';return`<tr><td><strong>${b.adoProject}</strong></td><td>${b.workItems}</td><td>${b.ghIssues}</td><td>${b.migratedRepos} / ${b.totalRepos}</td><td>${s}</td></tr>`}).join(''):'<tr class="empty-row"><td colspan="5">No board data</td></tr>';
+
+    document.getElementById('table-vargroups').innerHTML=data.vargroups.length?data.vargroups.map(v=>{let s;if(v.status==='fully_migrated')s='<span class="status status-ok">✓ Fully Migrated</span>';else if(v.status==='partial')s=`<span class="status status-warn">⚠ Partial (${v.ghVarCount}/${v.adoVarCount})</span>`;else if(v.status==='no_repos')s='<span class="status status-muted">— No Repos</span>';else s='<span class="status status-fail">✕ Not Found</span>';return`<tr><td><strong>${v.name}</strong></td><td>${v.project}</td><td>${v.adoVarCount}</td><td>${v.ghVarCount}</td><td>${s}</td></tr>`}).join(''):'<tr class="empty-row"><td colspan="5">No variable groups found</td></tr>';
+
+    document.getElementById('table-environments').innerHTML=data.environments.length?data.environments.map(e=>{let s;if(e.status==='migrated')s='<span class="status status-ok">✓ Migrated</span>';else if(e.status==='no_repos')s='<span class="status status-muted">— No Repos</span>';else s='<span class="status status-fail">✕ Not Found</span>';return`<tr><td><strong>${e.name}</strong></td><td>${e.project}</td><td>${e.description}</td><td>${e.ghRepo}</td><td>${s}</td></tr>`}).join(''):'<tr class="empty-row"><td colspan="5">No environments found</td></tr>';
+}
+</script>
+</body>
+</html>
